@@ -1,0 +1,5 @@
+# perfect matching with 3 edges, needs 3 bicliques
+3 3
+0 0
+1 1
+2 2
