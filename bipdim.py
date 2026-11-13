@@ -21,8 +21,22 @@ def read_instance(path):
         raise ValueError("empty instance file")
     return n_u, n_v, edges
 
+def u_var(u, l, k):
+    """Variable number for 'U vertex u is in biclique l' (l = 0..k-1)."""
+    return u * k + l + 1
+
+
+def v_var(v, l, n_u, k):
+    """Variable number for 'V vertex v is in biclique l' (l = 0..k-1)."""
+    return n_u * k + v * k + l + 1
 
 if __name__ == "__main__":
     n_u, n_v, edges = read_instance(sys.argv[1])
-    print(f"|U| = {n_u}, |V| = {n_v}, {len(edges)} edges")
-    print(sorted(edges))
+    k = int(sys.argv[2])
+    print(f"|U| = {n_u}, |V| = {n_v}, {len(edges)} edges, k = {k}")
+    for u in range(n_u):
+        for l in range(k):
+            print(f"U{u} in biclique {l} -> variable {u_var(u, l, k)}")
+    for v in range(n_v):
+        for l in range(k):
+            print(f"V{v} in biclique {l} -> variable {v_var(v, l, n_u, k)}")
