@@ -41,12 +41,23 @@ def encode(n_u, n_v, edges, k):
                 for l in range(k):
                     clauses.append([-u_var(u, l, k), -v_var(v, l, n_u, k)])
 
-    return clauses
+    # Rule 2: every edge is covered by some biclique
+    # z variables are helper variables, that represent an edge
+    vertex_vars = (n_u + n_v) * k          # z variables start after this number
+    for i, (u, v) in enumerate(sorted(edges)):
+        z = [vertex_vars + i * k + l + 1 for l in range(k)]
+        clauses.append(z)                                  # z_0 OR z_1 OR ...
+        for l in range(k):
+            clauses.append([-z[l], u_var(u, l, k)])        # z_l -> u in l
+            clauses.append([-z[l], v_var(v, l, n_u, k)])   # z_l -> v in l
+
+    num_vars = vertex_vars + len(edges) * k
+    return num_vars, clauses
 
 if __name__ == "__main__":
     n_u, n_v, edges = read_instance(sys.argv[1])
     k = int(sys.argv[2])
-    clauses = encode(n_u, n_v, edges, k)
-    print(f"{len(clauses)} clauses")
+    num_vars, clauses = encode(n_u, n_v, edges, k)
+    print(f"{num_vars} variables, {len(clauses)} clauses")
     for c in clauses:
         print(c)
