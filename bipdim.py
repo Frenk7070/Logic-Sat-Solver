@@ -30,13 +30,23 @@ def v_var(v, l, n_u, k):
     """Variable number for 'V vertex v is in biclique l' (l = 0..k-1)."""
     return n_u * k + v * k + l + 1
 
+def encode(n_u, n_v, edges, k):
+    """Building the CNF, returns a list of clauses such that each clause = list of ints."""
+    clauses = []
+
+    # Rule 1: non-adjacent u, v never share a biclique
+    for u in range(n_u):
+        for v in range(n_v):
+            if (u, v) not in edges:
+                for l in range(k):
+                    clauses.append([-u_var(u, l, k), -v_var(v, l, n_u, k)])
+
+    return clauses
+
 if __name__ == "__main__":
     n_u, n_v, edges = read_instance(sys.argv[1])
     k = int(sys.argv[2])
-    print(f"|U| = {n_u}, |V| = {n_v}, {len(edges)} edges, k = {k}")
-    for u in range(n_u):
-        for l in range(k):
-            print(f"U{u} in biclique {l} -> variable {u_var(u, l, k)}")
-    for v in range(n_v):
-        for l in range(k):
-            print(f"V{v} in biclique {l} -> variable {v_var(v, l, n_u, k)}")
+    clauses = encode(n_u, n_v, edges, k)
+    print(f"{len(clauses)} clauses")
+    for c in clauses:
+        print(c)
