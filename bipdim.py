@@ -54,10 +54,17 @@ def encode(n_u, n_v, edges, k):
     num_vars = vertex_vars + len(edges) * k
     return num_vars, clauses
 
+def to_dimacs(num_vars, clauses):
+    """Turn the clauses into DIMACS CNF format."""
+    lines = [f"p cnf {num_vars} {len(clauses)}"]
+    for c in clauses:
+        lines.append(" ".join(map(str, c)) + " 0")
+    return "\n".join(lines) + "\n"
+
 if __name__ == "__main__":
     n_u, n_v, edges = read_instance(sys.argv[1])
     k = int(sys.argv[2])
     num_vars, clauses = encode(n_u, n_v, edges, k)
-    print(f"{num_vars} variables, {len(clauses)} clauses")
-    for c in clauses:
-        print(c)
+    with open("formula.cnf", "w") as f:
+        f.write(to_dimacs(num_vars, clauses))
+    print(f"Written formula.cnf: {num_vars} variables, {len(clauses)} clauses")
