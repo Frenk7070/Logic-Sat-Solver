@@ -1,4 +1,8 @@
+import os
+import subprocess
 import sys
+
+GLUCOSE = os.path.expanduser("~/glucose/simp/glucose")
 
 
 def read_instance(path):
@@ -61,10 +65,38 @@ def to_dimacs(num_vars, clauses):
         lines.append(" ".join(map(str, c)) + " 0")
     return "\n".join(lines) + "\n"
 
+def run_glucose(cnf_path, solver=GLUCOSE):
+    """Run Glucose on a CNF file. Returns (satisfiable, true_vars, output)."""
+    result = subprocess.run([solver, "-model", cnf_path],
+                            capture_output=True, text=True)
+    output = result.stdout
+
+    satisfiable = None
+    true_vars = set()
+    for line in output.splitlines():
+        if line.strip() == "s SATISFIABLE":
+            satisfiable = True
+        elif line.strip() == "s UNSATISFIABLE":
+            satisfiable = False
+        elif line.startswith("v "):
+            for num in line[2:].split():
+                if int(num) > 0:
+                    true_vars.add(int(num))
+
+    if satisfiable is None:
+        raise RuntimeError("Glucose gave no answer:\n" + output + result.stderr)
+    return satisfiable, true_vars, output
+
 if __name__ == "__main__":
     n_u, n_v, edges = read_instance(sys.argv[1])
     k = int(sys.argv[2])
     num_vars, clauses = encode(n_u, n_v, edges, k)
     with open("formula.cnf", "w") as f:
         f.write(to_dimacs(num_vars, clauses))
-    print(f"Written formula.cnf: {num_vars} variables, {len(clauses)} clauses")
+
+    satisfiable, true_vars, output = run_glucose("formula.cnf")
+    if satisfiable:
+        print("SAT")
+        print("true variables:", sorted(true_vars))
+    else:
+        print("UNSAT")
